@@ -4,6 +4,13 @@ This mod is for the game NGU Idle.
 The intent of the mod is to massively decrease the time it takes to beat the game. It currently takes about 12-14 months to normally beat the game optimally. The mod brings that down to about a month if played optimally.
 It speeds up every aspect of the game, and makes the game more consistent with many, many quality of life fixes, and many balance fixes to achieve the one month goal.
 
+It is also HIGHLY recommended to start a new playthrough with this mod. If you want to keep your files untouched, you can create a new save folder so your main playthrough doesn't get touched, just follow the images below:
+
+<img width="533" height="346" alt="image" src="https://github.com/user-attachments/assets/cf37474e-4c6b-452a-ad41-cb16d349f075" />
+
+<img width="1289" height="920" alt="image" src="https://github.com/user-attachments/assets/0c301402-77a5-41ee-8386-9fc26f28e3b7" />
+
+
 ##  Discord Server
 
 If you have any questions or doubts regarding FasterPace, make sure to join my [Discord Server](https://discord.gg/shadowevil)
