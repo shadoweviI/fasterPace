@@ -42,4 +42,4 @@ So the final result will be:
 
 This is the public Google Doc that has all documented changes. If something is missing, feel free to report it in my Discord server.
 
-[https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0](https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0)
+[https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0]([https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0](https://docs.google.com/document/d/e/2PACX-1vT7iqCO7GuOHbX5mNEbaYfq7CXV5lQbobf4CUxCzIewrbsF5V1LdqiRdL7hr38WPKIcl9-QCykdiaYE/pub))
