@@ -42,4 +42,4 @@ So the final result will be:
 
 This is the public Google Doc that has all documented changes. If something is missing, feel free to report it in my Discord server.
 
-[Google Doc Link]([https://github.com/jshepler/jshepler.ngu.mods/releases](https://docs.google.com/document/d/e/2PACX-1vT7iqCO7GuOHbX5mNEbaYfq7CXV5lQbobf4CUxCzIewrbsF5V1LdqiRdL7hr38WPKIcl9-QCykdiaYE/pub))
+[Google Doc Link](https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?userstoinvite=chinjunsi90@gmail.com&sharingaction=manageaccess&role=writer&tab=t.0)
