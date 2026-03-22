@@ -11,6 +11,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="APChallengeMod.cs" />
+      <Compile Remove="CustomAddsNGU.cs" />
+      <Compile Remove="EquipLevelMod.cs" />
+      <Compile Remove="ITOPODTest.cs" />
+      <Compile Remove="Perk34Fix.cs" />
+      <Compile Remove="Perk34XPFix.cs" />
+      <Compile Remove="SpecRandomizer.cs" />
+      <Compile Remove="ZoneEnemyAdd.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
         <PackageReference Include="BepInEx.Core" Version="5.*" />
         <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
