@@ -29,3 +29,10 @@ Make sure to put the earlier downloaded DLL file in this folder. It is HIGHLY re
 So the final result will be:
 
 <img width="1286" height="355" alt="image" src="https://github.com/user-attachments/assets/bbc360a7-8ef0-44e6-894b-adc073bfbe89" />
+
+
+##  Changelog:
+
+This is the public Google Doc that has all documented changes. If something is missing, feel free to report it in my Discord server.
+
+[https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0](https://docs.google.com/document/d/16HnR5J7JAF8PjiVGS7ZwfLieN770QHpmf19pwU_pWiE/edit?tab=t.0)
