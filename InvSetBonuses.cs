@@ -7,12 +7,8 @@ namespace fasterPace
     {
         private const int SlotsPerSet = 12;
 
-        private const string KEY_TRAINING = "fasterPace.invset.training";
-        private const string KEY_SEWERS = "fasterPace.invset.sewers";
-        private const string KEY_FOREST = "fasterPace.invset.forest";
-        private const string KEY_CAVE = "fasterPace.invset.cave";
-        private const string KEY_HSB = "fasterPace.invset.hsb";
-        private const string KEY_TUTORIALCUBE = "fasterPace.invset.tutorialCube";
+        // NEW versioned keys so old broken flags do not block awards.
+        private const string KEY_MIGRATION_PREFIX = "fasterPace.invset.migration.v2";
 
         private static string SaveScopedKey(Character c, string key)
         {
@@ -36,19 +32,35 @@ namespace fasterPace
             return $"{key}.{plat}.{name}";
         }
 
-        private static bool GetFlag(Character c, string key)
-            => PlayerPrefs.GetInt(SaveScopedKey(c, key), 0) != 0;
-
-        private static void SetFlag(Character c, string key)
+        private static int GetAppliedCount(Character c)
         {
-            PlayerPrefs.SetInt(SaveScopedKey(c, key), 1);
-            PlayerPrefs.Save();
+            try { return PlayerPrefs.GetInt(SaveScopedKey(c, KEY_MIGRATION_PREFIX), 0); }
+            catch { return 0; }
         }
 
-        // Add slots safely (clamped to vanilla max if available)
-        private static void GrantInvSpaces(Character c, int amount)
+
+
+        private static void SetAppliedCount(Character c, int value)
         {
-            if (c == null || amount <= 0) return;
+            try
+            {
+                PlayerPrefs.SetInt(SaveScopedKey(c, KEY_MIGRATION_PREFIX), value);
+                PlayerPrefs.Save();
+            }
+            catch { }
+        }
+
+        internal static void RefreshUI(Character c)
+        {
+            try { c?.inventoryController?.updateInvCount(); } catch { }
+            try { c?.allArbitrary?.updateMenu(); } catch { }
+            try { c?.refreshMenus(); } catch { }
+        }
+
+        internal static void GrantInvSpaces(Character c, int amount)
+        {
+            if (c == null || c.arbitrary == null || amount <= 0)
+                return;
 
             long max = long.MaxValue;
             try
@@ -67,40 +79,72 @@ namespace fasterPace
             if (next != cur)
             {
                 c.arbitrary.inventorySpaces = (int)next;
-                c.inventoryController?.updateInvCount();
+                RefreshAfterSetReward(c);
             }
         }
 
-        private static void GrantIfCompleteAndNotAwarded(Character c, bool isComplete, string key)
+        private static void RefreshAfterSetReward(Character c)
         {
-            if (c == null) return;
-            if (!isComplete) return;
-            if (GetFlag(c, key)) return;
-
-            GrantInvSpaces(c, SlotsPerSet);
-            SetFlag(c, key);
+            try { c?.inventoryController?.updateInvCount(); } catch { }
+            try { c?.inventoryController?.updateBonuses(); } catch { }
+            try { c?.allArbitrary?.updateMenu(); } catch { }
+            try { c?.refreshMenus(); } catch { }
         }
 
-        [HarmonyPatch(typeof(AllItemListController), nameof(AllItemListController.checkforBonuses))]
-        internal static class Patch_AllItemListController_CheckForBonuses_EnsureInvSetSlots
+        internal static void GrantSetRewardNow(Character c)
+        {
+            GrantInvSpaces(c, SlotsPerSet);
+            RefreshAfterSetReward(c);
+        }
+
+        private static int CountCompletedEligibleSets(Character c)
+        {
+            var il = c?.inventory?.itemList;
+            if (il == null) return 0;
+
+            int n = 0;
+            if (il.trainingComplete) n++;
+            if (il.sewersComplete) n++;
+            if (il.forestComplete) n++;
+            if (il.caveComplete) n++;
+            if (il.HSBComplete) n++;
+            // include only if intended:
+            // if (il.tutorialCubeComplete) n++;
+
+            return n;
+        }
+
+        // One-time backfill for already-complete saves.
+        private static void SyncAlreadyCompletedSets(Character c)
+        {
+            if (c == null || c.inventory?.itemList == null || c.arbitrary == null)
+                return;
+
+            int completed = CountCompletedEligibleSets(c);
+            int applied = GetAppliedCount(c);
+
+            if (applied < 0) applied = 0;
+            if (applied > completed) applied = completed;
+
+            int missing = completed - applied;
+            if (missing > 0)
+            {
+                GrantInvSpaces(c, missing * SlotsPerSet);
+                SetAppliedCount(c, completed);
+            }
+
+            RefreshUI(c);
+        }
+
+        [HarmonyPatch(typeof(ImportExport), "loadData")]
+        internal static class Patch_ImportExport_LoadData_SyncInvSetBonuses
         {
             [HarmonyPostfix]
-            private static void Postfix(AllItemListController __instance)
+            private static void Postfix(ImportExport __instance)
             {
                 try
                 {
-                    var c = __instance?.character;
-                    var il = c?.inventory?.itemList;
-                    if (c == null || il == null) return;
-
-                    GrantIfCompleteAndNotAwarded(c, il.trainingComplete, KEY_TRAINING);
-                    GrantIfCompleteAndNotAwarded(c, il.sewersComplete, KEY_SEWERS);
-                    GrantIfCompleteAndNotAwarded(c, il.forestComplete, KEY_FOREST);
-                    GrantIfCompleteAndNotAwarded(c, il.caveComplete, KEY_CAVE);
-                    GrantIfCompleteAndNotAwarded(c, il.HSBComplete, KEY_HSB);
-
-                    // Remove this line if tutorial cube should NOT grant slots.
-                    GrantIfCompleteAndNotAwarded(c, il.tutorialCubeComplete, KEY_TUTORIALCUBE);
+                    SyncAlreadyCompletedSets(__instance?.character);
                 }
                 catch { }
             }

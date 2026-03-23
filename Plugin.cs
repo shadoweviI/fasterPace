@@ -1,5 +1,5 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;   
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
@@ -13,8 +13,6 @@ namespace fasterPace
     {
         private Harmony _harmony;
         internal static ManualLogSource Log;
-
-        // <-- add this
         internal static ConfigEntry<bool> EnableSteamAchievements;
 
         private void Awake()
@@ -22,7 +20,6 @@ namespace fasterPace
             Log = Logger;
             _harmony = new Harmony(PluginInfo.PLUGIN_GUID);
 
-            // <-- add this (disabled by default)
             EnableSteamAchievements = Config.Bind(
                 "Steam Achievements",
                 "EnableSteamAchievements",
@@ -31,9 +28,16 @@ namespace fasterPace
             );
 
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+
             _harmony.PatchAll();
             TryPatchJshepler(_harmony);
             FibPerkUnlockOverride.Install(_harmony);
+            NewVersionMonitor.Init(this, Config);
+        }
+
+        private void OnGUI()
+        {
+            NewVersionMonitor.DrawGUI();
         }
 
         internal static void LogInfo(string msg) => Log?.LogInfo(msg);

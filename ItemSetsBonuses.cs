@@ -623,7 +623,7 @@ namespace fasterPace
             if (!character.inventory.itemList.trainingComplete && character.inventory.itemList.maxxedTraining())
             {
                 character.inventory.itemList.trainingComplete = true;
-                character.inventoryController.updateInvCount();
+                InvSetBonuses.GrantSetRewardNow(character);
                 character.energySpeed += 2f;
 
                 long exp = character.addExp(10L);
@@ -640,7 +640,7 @@ namespace fasterPace
             else if (!character.inventory.itemList.sewersComplete && character.inventory.itemList.maxxedSewers())
             {
                 character.inventory.itemList.sewersComplete = true;
-                character.inventoryController.updateInvCount();
+                InvSetBonuses.GrantSetRewardNow(character);
                 character.adventure.attack += 5f;
                 character.adventure.defense += 5f;
                 character.adventure.maxHP += 15f;
@@ -660,7 +660,7 @@ namespace fasterPace
             else if (!character.inventory.itemList.forestComplete && character.inventory.itemList.maxxedForest())
             {
                 character.inventory.itemList.forestComplete = true;
-                character.inventoryController.updateInvCount();
+                InvSetBonuses.GrantSetRewardNow(character);
                 character.arbitrary.energyPotion1Count += 2;
                 character.arbitrary.energyPotion2Count += 2;
                 character.arbitrary.energyBarBar1Count += 2;
@@ -682,8 +682,7 @@ namespace fasterPace
             else if (!character.inventory.itemList.caveComplete && character.inventory.itemList.maxxedCave())
             {
                 character.inventory.itemList.caveComplete = true;
-                character.inventoryController.updateInvCount();
-
+                InvSetBonuses.GrantSetRewardNow(character);
                 long exp = character.addExp(300L);
 
                 character.magic.magicPower += 2f;
@@ -704,7 +703,7 @@ namespace fasterPace
                 character.inventory.itemList.HSBComplete = true;
 
                 long exp = character.addExp(500L);
-
+                InvSetBonuses.GrantSetRewardNow(character);
                 character.magic.magicPerBar += 3L;
                 character.magic.magicPower += 3f;
                 character.magic.capMagic += 30000L;
