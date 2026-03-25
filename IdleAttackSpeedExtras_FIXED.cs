@@ -14,24 +14,65 @@ namespace fasterPace
         private const string PP_GREY = "fasterPace.extraComplete.greyLiquid506";
 
         private static Character _character;
+        private static PlayerController _playerController;
+        private static float _lastAppliedSpeed = -1f;
+
         private static Character C => _character;
 
         [HarmonyPostfix, HarmonyPatch(typeof(AdventureController), "Start")]
         private static void CacheCharacter(AdventureController __instance)
         {
             _character = __instance?.character;
-
-            // Also force the correct speed on load/start immediately.
-            if (_character != null)
-                ApplyNow(_character);
+            CachePlayerController();
+            ForceApplyNow(_character);
         }
 
-        private static bool GetFlag(string key) => PlayerPrefs.GetInt(key, 0) != 0;
-
-        private static void SetFlag(string key)
+        private static void CachePlayerController()
         {
-            PlayerPrefs.SetInt(key, 1);
-            PlayerPrefs.Save();
+            try
+            {
+                if (_playerController == null)
+                    _playerController = Object.FindObjectOfType<PlayerController>();
+            }
+            catch { }
+        }
+
+        private static string SaveScopedKey(Character c, string key)
+        {
+            string name = "unknown";
+            string plat = "unknownPlat";
+
+            try
+            {
+                if (c != null && !string.IsNullOrEmpty(c.playerName))
+                    name = c.playerName;
+            }
+            catch { }
+
+            try
+            {
+                if (c != null)
+                    plat = c.platform.ToString();
+            }
+            catch { }
+
+            return $"{key}.{plat}.{name}";
+        }
+
+        private static bool GetFlag(Character c, string key)
+        {
+            try { return PlayerPrefs.GetInt(SaveScopedKey(c, key), 0) != 0; }
+            catch { return false; }
+        }
+
+        private static void SetFlag(Character c, string key)
+        {
+            try
+            {
+                PlayerPrefs.SetInt(SaveScopedKey(c, key), 1);
+                PlayerPrefs.Save();
+            }
+            catch { }
         }
 
         private static bool IsMaxxed(Character c, int itemId)
@@ -48,32 +89,42 @@ namespace fasterPace
             return 0.8f;
         }
 
-        /// <summary>
-        /// Apply immediately to both the Adventure speed field and the live PlayerController timer.
-        /// </summary>
-        private static void ApplyNow(Character c)
+        private static void ForceApplyNow(Character c)
         {
             if (c == null) return;
 
             float spd = DesiredIdleAttackSpeed(c);
+            _lastAppliedSpeed = spd;
 
-            // Force vanilla to re-evaluate first.
-            if (c.adventure != null)
-            {
-                c.adventure.setFasterIdleAttack();
-                c.adventure.attackSpeed = spd;
-            }
-
-            // IMPORTANT:
-            // The currently running combat timer can still be holding the old value.
-            // Push the new speed into the live player controller immediately.
             try
             {
-                var pc = UnityEngine.Object.FindObjectOfType<PlayerController>();
-                if (pc != null)
-                    pc.moveTimer = spd;
+                if (c.adventure != null)
+                    c.adventure.attackSpeed = spd;
             }
             catch { }
+
+            CachePlayerController();
+
+            try
+            {
+                if (_playerController != null)
+                    _playerController.moveTimer = spd;
+            }
+            catch
+            {
+                _playerController = null;
+            }
+        }
+
+        private static void ApplyNowIfChanged(Character c)
+        {
+            if (c == null) return;
+
+            float spd = DesiredIdleAttackSpeed(c);
+            if (Mathf.Abs(_lastAppliedSpeed - spd) < 0.0001f)
+                return;
+
+            ForceApplyNow(c);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(Adventure), "setFasterIdleAttack")]
@@ -84,6 +135,7 @@ namespace fasterPace
             if (c.adventure != null && c.adventure != __instance) return;
 
             __instance.attackSpeed = DesiredIdleAttackSpeed(c);
+            _lastAppliedSpeed = __instance.attackSpeed;
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(PlayerController), nameof(PlayerController.usedMove))]
@@ -92,6 +144,7 @@ namespace fasterPace
             var c = C;
             if (c == null || __instance == null) return;
 
+            _playerController = __instance;
             __instance.moveTimer = DesiredIdleAttackSpeed(c);
         }
 
@@ -101,48 +154,49 @@ namespace fasterPace
             if (__instance == null) return;
             if (C == null) _character = __instance;
 
-            ApplyNow(__instance);
+            ForceApplyNow(__instance);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(AllItemListController), "checkforBonuses")]
         private static void Postfix_CheckForBonuses_ExtraCompletes(AllItemListController __instance)
         {
             var c = __instance?.character;
-            if (c?.inventory?.itemList == null) return;
+            var il = c?.inventory?.itemList;
+            if (il == null) return;
 
-            bool changed = false;
+            bool edgyNow = IsMaxxed(c, BOTH_EDGY_BOOTS_ID);
+            bool greyNow = IsMaxxed(c, GREY_LIQUID_ID);
 
-            // Grey Liquid first (highest priority)
-            if (!GetFlag(PP_GREY) && IsMaxxed(c, GREY_LIQUID_ID))
+            bool showEdgyPopup = false;
+            bool showGreyPopup = false;
+
+            if (greyNow && !GetFlag(c, PP_GREY))
             {
-                SetFlag(PP_GREY);
+                SetFlag(c, PP_GREY);
+                showGreyPopup = true;
+            }
 
+            if (edgyNow && !GetFlag(c, PP_EDGY))
+            {
+                SetFlag(c, PP_EDGY);
+                showEdgyPopup = true;
+            }
+
+            ApplyNowIfChanged(c);
+
+            if (showGreyPopup)
+            {
                 __instance.tooltip.showOverrideTooltip(
                     "You've maxxed out Grey Liquid, congrats!\n\nIdle Attack speed is now set to 0.4.",
                     5f
                 );
-
-                changed = true;
             }
-
-            // Both Edgy Boots
-            if (!GetFlag(PP_EDGY) && IsMaxxed(c, BOTH_EDGY_BOOTS_ID))
+            else if (showEdgyPopup)
             {
-                SetFlag(PP_EDGY);
-
                 __instance.tooltip.showOverrideTooltip(
                     "You've maxxed out Both Edgy Boots, congrats!\n\nGlobal Attack speed is now set to 0.6.",
                     5f
                 );
-
-                changed = true;
-            }
-
-            // Apply after flags/tooltips so the highest-priority state wins cleanly.
-            if (changed)
-            {
-                ApplyNow(c);
-                c.refreshMenus();
             }
         }
     }

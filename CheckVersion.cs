@@ -19,7 +19,7 @@ namespace fasterPace
         private static string _latestVersion;
         private static string _latestUrl = ReleasesPageUrl;
 
-        private static Rect _area = new Rect(15f, 35f, 460f, 34f);
+        private static Rect _area = new Rect(20f, 5f, 360f, 30f);
 
         private static ConfigEntry<bool> _enabled;
         private static ConfigEntry<string> _skippedVersion;
@@ -182,25 +182,33 @@ namespace fasterPace
             if (string.IsNullOrEmpty(_latestVersion))
                 return;
 
-            GUILayout.BeginArea(_area, GUI.skin.box);
-            GUILayout.BeginHorizontal();
-
-            GUILayout.Label("fasterPace update available: " + _latestVersion);
-            GUILayout.FlexibleSpace();
-
-            if (GUILayout.Button("Open", GUILayout.Width(70f), GUILayout.Height(22f)))
+            UIScaler.Begin();
+            try
             {
-                Application.OpenURL(_latestUrl);
-            }
+                GUILayout.BeginArea(_area, GUI.skin.box);
+                GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("Skip", GUILayout.Width(70f), GUILayout.Height(22f)))
+                GUILayout.Label("fasterPace update available: " + _latestVersion);
+                GUILayout.FlexibleSpace();
+
+                if (GUILayout.Button("Open", GUILayout.Width(70f), GUILayout.Height(22f)))
+                {
+                    Application.OpenURL(_latestUrl);
+                }
+
+                if (GUILayout.Button("Skip", GUILayout.Width(70f), GUILayout.Height(22f)))
+                {
+                    _skippedVersion.Value = NormalizeVersion(_latestVersion);
+                    _latestVersion = null;
+                }
+
+                GUILayout.EndHorizontal();
+                GUILayout.EndArea();
+            }
+            finally
             {
-                _skippedVersion.Value = NormalizeVersion(_latestVersion);
-                _latestVersion = null;
+                UIScaler.End();
             }
-
-            GUILayout.EndHorizontal();
-            GUILayout.EndArea();
         }
     }
 }
