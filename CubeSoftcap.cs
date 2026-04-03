@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using fasterPace;
+using HarmonyLib;
+using System.Reflection;
 
 [HarmonyPatch]
 internal static class WesternCubeDivisor4
@@ -121,6 +123,39 @@ internal static class WesternCubeDivisor4
             var c = __instance?.character;
             if (c?.inventory == null) return;
             ApplyScaledDelta(c, ref __state);
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class CubeTooltipIntegration
+    {
+        private const float TARGET_NUM = 25f;
+
+        private static bool WesternComplete(Character c)
+            => c?.inventory?.itemList != null && c.inventory.itemList.westernComplete;
+
+        [HarmonyTargetMethod]
+        private static MethodBase TargetMethod()
+        {
+            // jshepler.ngu.mods.InfinityCubeSoftCap::get_CubeBoostDivider
+            var t = AccessTools.TypeByName("jshepler.ngu.mods.InfinityCubeSoftCap");
+            return t == null ? null : AccessTools.PropertyGetter(t, "CubeBoostDivider");
+        }
+
+        [HarmonyPostfix]
+        private static void Postfix(ref float __result)
+        {
+            var c = Plugin.Character;
+            if (c == null)
+                return;
+
+            if (!WesternComplete(c))
+                return;
+
+            // Your actual gameplay patch only improves cube gains when vanilla
+            // divisor is worse than 25, so the tooltip should reflect the same.
+            if (__result > TARGET_NUM)
+                __result = TARGET_NUM;
         }
     }
 }

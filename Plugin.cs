@@ -14,6 +14,7 @@ namespace fasterPace
         private Harmony _harmony;
         internal static ManualLogSource Log;
         internal static ConfigEntry<bool> EnableSteamAchievements;
+        internal static Character Character;
 
         private void Awake()
         {
@@ -33,6 +34,16 @@ namespace fasterPace
             TryPatchJshepler(_harmony);
             FibPerkUnlockOverride.Install(_harmony);
             NewVersionMonitor.Init(this, Config);
+        }
+
+        [HarmonyPatch(typeof(Character), "Start")]
+        internal static class Patch_Character_Start_CacheInstance
+        {
+            [HarmonyPostfix]
+            private static void Postfix(Character __instance)
+            {
+                Plugin.Character = __instance;
+            }
         }
 
         private void OnGUI()
